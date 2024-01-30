@@ -1,0 +1,243 @@
+---
+title: "SDS 313 - HW 2"
+output:
+  pdf_document: default
+  html_document: default
+date: "2024-01-29"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r echo=FALSE, message=FALSE}
+library(tidyverse)
+library(ggplot2)
+library(RColorBrewer)
+profs <- read.csv('profs.csv')
+bikeshare <- read.csv('bikeshare.csv')
+metro <- read.csv('capmetro_UT.csv')
+billboard <- read.csv('billboard.csv')
+```
+
+# Problem 1: Beauty, or not, in the classroom
+
+## Part A: Histogram of Course Evaluations
+```{r echo=FALSE, message=FALSE}
+prof_ggplot <- ggplot(profs)
+prof_ggplot + geom_histogram(aes(x=eval), col = 'black', fill = 'skyblue') + labs(title = 'Distrubution of Course Evaluations', x='Course Evaluations (Scale from 1-5)', y='Frequency') + theme_minimal()
+```
+
+### Description:
+This univariate graph displays the distribution of course evaluations as the x axis (on a scale of 1-5) for professors at UT Austin and its frequency as the y axis. The graph appears to be left/negatively skewed. The median is approximately `r round(median(profs$eval),2)`. The 25th percentile is about `r round(quantile(profs$eval, .25),2)` and the 75th percentile is about `r round(quantile(profs$eval, .75),2)`. From the graph, it can be taken away that majority of the course evaluations are around 4 in the scale.
+
+## Part B: Boxplot of Course Evaluations Based off of Being a Native or a Non Native Speaker 
+```{r echo=FALSE, message=FALSE}
+prof_ggplot + geom_boxplot(aes(x=native, y=eval), col = 'black', fill = 'darkred') + labs(title = 'Relationship between Course Evaluations and Nativness in English', x='Native in English', y='Course Evaluations (1-5)') +theme_minimal()
+
+aggregate(eval~native, data=profs, median)
+aggregate(eval~native, data=profs, sd)
+```
+
+### Description:
+This bivariate graph is a box plot displaying the relationship of one categorical variable and one numerical variable. Native in English (yes or no) is the categorical variable as the x axis and the course evaluations (from a scale of 1-5) is the numerical variable as the y axis. The "no" box plot is approx symmetrical and the year box plot is left/negatively skewed. The "yes" box plot has the highest median of about 4.0 with the highest standard deviation of about .5541767. The "no" box plot has the lowest median of about 3.6 with the lowest standard deviation of about .4755810. Based off of this graph, it can be taken away that there are higher course evaluations for native English speakers.
+
+
+## Part C: Faceted Histogram of Course Evaluations Based off of Sex of Instructor 
+```{r echo=FALSE, message=FALSE}
+prof_ggplot + geom_histogram(aes(x=eval), col = 'black', fill = 'azure') + labs(title = 'Distrubution of Course Evaluations Based off of Sex', x='Course Evaluations (Scale from 1-5)', y='Frequency') + facet_wrap(~gender, nrow = 2) + theme_minimal()
+median_male <- median(profs$eval[profs$gender == "male"], na.rm = TRUE)
+median_female <- median(profs$eval[profs$gender == "female"], na.rm = TRUE)
+q1_male <- quantile(profs$eval[profs$gender == "male"], 0.25, na.rm = TRUE)
+q3_male <- quantile(profs$eval[profs$gender == "male"], 0.75, na.rm = TRUE)
+q1_female <- quantile(profs$eval[profs$gender == "female"], 0.25, na.rm = TRUE)
+q3_female <- quantile(profs$eval[profs$gender == "female"], 0.75, na.rm = TRUE)
+median_male
+q1_male
+q3_male
+median_female
+q1_female
+q3_female
+```
+
+### Description:
+These histograms are faceted by the sex of instructors (female and male) to compare the distribution of course evaluation scores and its frequency as the y axis. Both of the histograms of left/negatively skewed. The median for the male's is higher, being about 4.15. the 25th quartile of the course evaluation for male's is about 3.7 and the 75th quartile is about 4.5. On the other hand, female's median rating is lower with a rating of 3.8. Female's 25th quartile is about 3.6 and their 75% quartile is about 4.3. From the graph, it can be taken away that more males find had higher course evaluations for professor's than females at UT. 
+
+
+## Part D: Scatterplot to Show the Correlation Between Professor's Attractivness and Course Evaluations
+```{r echo=FALSE, message=FALSE}
+prof_ggplot + geom_point(aes(x=beauty, y=eval), col = 'aquamarine4', fill = 'black') + labs(title = 'Correlation Between Attractivness of Professors and Course Evaluations', x='Beauty of Professor', y='Course Evaluations (Scale from 1-5)') + theme_minimal()
+cor(profs$beauty, profs$eval, use = 'complete.obs')
+```
+
+### Description:
+The bivariate graph is a scatter plot displaying the correlation of the beauty of the professor (with the mean being zero) as the x axis and the course evaluations of the professor (from a scale of 1-5) as the y axis. There is a weak, positive correlation of about .1890391. This graph shows that the attractiveness of professors does not really affect their course evaluations.
+
+# Problem 2: Bike Sharing
+
+## Plot A: Linegraph Showing Average Hourly Bike Rentals (total) Across all Hours of the Day (hr)
+```{r echo=FALSE, message=FALSE}
+by_total_hourly = bikeshare %>% 
+  group_by(hr) %>% 
+  summarize(count = n(),
+            mean_total = mean(total, na.rm=TRUE))
+by_total_hourly
+tot_hrly_ggplot <- ggplot(by_total_hourly)
+tot_hrly_ggplot + geom_line(aes(x=hr, y=mean_total), col = 'blue') + labs(title = 'Average Hourly Bike Rentals Across all Hours of the Day', x='Hours (1-23)', y = 'Average of Bike Rentals') + theme_minimal()
+mean_value <- mean(by_total_hourly$mean_total)
+max_value <- max(by_total_hourly$mean_total)
+min_value <- min(by_total_hourly$mean_total)
+mean_value
+max_value
+min_value
+```
+### Description
+This line graph illustrates the average hourly bike rental for each day in Washington D.C. The x axis is the hours of the day from 0 to 23 hours and the y axis is the average of the bike rentals. The graph has a mean of about 188.479, a max of about 461.4521, and a minimum of about 6.352941. The line graph has two peaks. The highest peak of average bike rentals is about in hour 16.75 and the second highest peak is in about hour 8. From this graph, it can be hypothesized that bike rentals are at its highest when work usually starts and ends for general people. On the other hand, the bike rentals can be hypothesized to be at its lowest during the most latest/earliest hours when majority of the general people are not working.
+
+## Plot B: Faceted Line Graph Showing Average Bike Rentals By Hour of the Day, Faceted According to Whether it is a Working Day (workingday)
+```{r echo=FALSE, message=FALSE}
+by_workingday_hourly = bikeshare %>% 
+  group_by(hr, workingday) %>% 
+  summarize(count = n(),
+            mean_total = mean(total, na.rm=TRUE))
+by_workingday_hourly
+workingday_ggplot <- ggplot(by_workingday_hourly)
+workingday_ggplot + geom_line(aes(x=hr, y=mean_total), col = 'cadetblue') + labs(title = 'Average Hourly Bike Rentals Across all Hours of the Day', x='Hours (1-23)', y = 'Average of Bike Rentals') + theme_minimal() + facet_wrap( ~ workingday, labeller = labeller(workingday = c('0' = 'Weekend/Holiday', '1' = 'Workday')))
+
+summary_stats <- by_workingday_hourly %>%
+  group_by(workingday) %>%
+  summarize(mean_value = mean(mean_total),
+            max_value = max(mean_total),
+            min_value = min(mean_total))
+print(summary_stats)
+```
+
+### Description:
+This line graph is faceted by whether it is a working day or a weekday/holiday. It shows the relationship between the hours of the day (1-23 hours) as the x axis and the average bike rentals in Washington D.C. as the y axis. The working day graph has a higher mean value of about 192.0351 and maximum value of about 525.2906, but the lowest minimum value of about 4.942553. The working day has the highest peak around hour 17 and the second highest peak around hour 7. On the other hand, weekends/holidays have the lowest mean value of about 180.7129 and maximum value of about 372.7316, but the highest minimum value of about 8.264317.  Weekend/holiday has its highest peak around hour 12. It can be hypothesized from the graph that bike rentals are more used during workdays than weekends/holidays.
+
+## Plot C: Bar plot Displaying Average Ridership During 9 AM hour by Weather Situation Code, Faceted by Working Day or Not
+```{r echo=FALSE, message=FALSE}
+by_morning_ridership = bikeshare %>%
+  filter(hr == 9) %>%
+  group_by(weathersit, workingday) %>%
+  summarize(count = n(),
+            avg_total = mean(total, na.rm=TRUE),
+            median_total = median(total, na.rm=TRUE),
+            min_total = min(total, na.rm=TRUE),
+            max_total = max(total, na.rm=TRUE))
+by_morning_ridership
+morning_ggplot <- ggplot(by_morning_ridership)
+morning_ggplot + geom_col(aes(x=weathersit, y=avg_total), fill = 'coral1', col = 'black') + labs(title = 'Average Ridership at 9 AM by Weather Situation', x = 'Weather Situation', y = 'Average Ridership') + facet_wrap( ~ workingday, labeller = labeller(workingday = c('0' = 'Weekend/Holiday', '1' = 'Workday'))) + theme_minimal()
+```
+
+### Description 
+The faceted bar plot exhibits the average ridership during the 9 AM hour as the y axis, categorized by weather situation as the x axis and further faceted based on whether it is a working day or not. The  median ridership on working days at 9 AM is 235.0, the mean is about 249.58 the minimum ridership is about 65, and the maximum ridership is about 426 when the weather situation is misty/cloudy. The median ridership on non-working days at 9 AM is 127.5, the average ridership is about 143.36, the minimum ridership is about 23, and the maximum ridership is about 359 when the weather situation is heavy rain/thunderstorms/snow. Based off of this analysis and bar, more people tend to travel at 9 AM on misty/cloudy working days, but heavy rain or snow has a big effect, causing fewer people to travel on non-working days.
+
+# Problem 3 - Capital Metro UT Ridership
+
+## Question 1: One faceted line graph that plots average boardings by hour of the day, day of week, and month. You should facet by day of week. Each facet should include three lines of average boardings (y) by hour of the day (x), one line for each month and distinguished by color. Give the figure an informative caption in which you explain what is shown in the figure and also address the following questions, citing evidence from the figure.
+```{r echo=FALSE, message=FALSE}
+metro = mutate(metro, day_of_week = factor(day_of_week,
+levels=c("Mon", "Tue", "Wed","Thu", "Fri", "Sat", "Sun")),
+month = factor(month,
+levels=c("Sep", "Oct","Nov")))
+
+by_boardings = metro %>% 
+  group_by(hour_of_day, day_of_week, month) %>% 
+  summarize(count = n(),
+            avg_boardings = mean(boarding, na.rm=TRUE),
+            max_boardings = max(boarding, na.rm = TRUE),
+            min_boardings = min(boarding, na.rm = TRUE))
+by_boardings
+desc_boarding <- by_boardings %>%
+  group_by(month, day_of_week) %>%
+  summarize(Mean = mean(avg_boardings, na.rm = TRUE),
+            Max = max(max_boardings, na.rm = TRUE),
+            Min = min(min_boardings, na.rm = TRUE))
+desc_boarding
+metro_ggplot <- ggplot(by_boardings)
+metro_ggplot + geom_line(aes(x=hour_of_day, y=avg_boardings, col = as.factor(month))) + labs(title = 'Average Boardings of Buses by the Hour of the Day, Day of Week, and Month', x = 'Hour of the Day', y = 'Average Boardings') + facet_wrap( ~ day_of_week) + theme_minimal()
+
+```
+
+### Description:
+The faceted line graph the average shows average boarding of bus ridership in the UT area (as the y axis) across various hours of the day (as the x axis), days of the week, and months. Each facet corresponds to a day of the week, with lines representing different months, distinguished by color. In the month September, the mean is the highest with a value of about 74.33203 on Tuesdays with a highest max on Fridays with a value of about 239 and the lowest minimum value of 0 on Mondays,Tuesdays, Saturdays, and Sundays. In the month October, the highest average value of boarding is on Mondays of a value of about 72.90625, a highest max value of about 288 on Tuesdays, and the lowest min value of 0 on Mondays, Wednesdays, Saturday, and Sunday. In the month November, Mondays have the highest average value of about 71.14453, the highest max value of that month is on Wednesdays and is about 231, and the lowest min value of 0 is on Thursdays, Fridays, Saturdays, and Sundays. In the line graphs, it is seen that majority of the peaks for all months throughout the weekdays are during hours 15 to 17.5. The analysis of the graph reveals consistent patterns of bus ridership in the UT area, with higher average boarding on early days of the week (Monday, Tuesdays, and Wednesdays), peak hours during late afternoons to early evenings, and distinctive monthly variations, providing valuable insights for optimizing bus schedules and meeting demand. The hour peak is approximate the same for the weekdays, as said before, ranging from hour 15 to 17.5, but the peak for weekends are different by having a constant low average boarding. The graph shows September having lower average boarding on Mondays, compared to other days and months. A factor for this could be that September is the month where it's the starts of the semester of University student and faculty members, so they are probably adjusting to changes and coming back from a long break, and after having a relaxing weekend, people may not want to use public transportation in the start of the week out of laziness. The graph also displays that average boarding on Weds/Thurs/Fri for  November look lower and a big factor that probably contributes that is because of that month being the holiday season. People are back at home and are shopping more because of black Friday and Christmas, so they are less likely to spend more money for transportation. 
+
+## Question 2: One faceted scatter plot showing boardings (y) vs. temperature (x), faceted by hour of the day, and with points colored in according to whether it is a weekday or weekend
+```{r echo=FALSE, message=FALSE}
+temp_ggplot <- ggplot(metro)
+temp_ggplot + geom_point(aes(x=temperature, y=boarding, col = as.factor(weekend))) + labs(title = 'Correlation Between Boardings and Temperature By Hour of Day and Weekday/Weekend', x = 'Temperature', y = 'Boardings') + facet_wrap( ~ hour_of_day) + theme_minimal()
+cor_boarding <- metro %>%
+  group_by(hour_of_day) %>%
+  summarize(correlation = cor(temperature, boarding, use = "complete.obs"))
+cor_boarding
+
+```
+
+### Description:
+The graph illustrated the correlation between the temperature (as the x axis) and Boarding (as the y axis). The scatter plot is faceted by the hour of the day and colored by whether it's a weekday or a weekend. Hour 6 has a very weak, positive correlation of about 0.068324126, as the highest correlation value. Hour 12 has a very weak, negative correlation of about -.068220686, as the lowest correlation value. Holding  hour of day and weekend status constant, temperature does not have a very big effect on the number of UT students riding the bus, as seen with correlation values. However, the hour of the day and day of the week has an effect on the number of UT students riding the bus, with hours from 15 - 18 have the highest amount of boarding and it being during the weekday.
+
+# Problem 4: Wrangling the Billboard Top 100
+
+## Part A: A Table of the Top 10 Most Popular Songs Since 1958 in 10 Columns and 3 Rows (Performer, Song, and Count)
+```{r echo=FALSE, message=FALSE}
+top10_songs = billboard %>%
+  filter(year >= 1958) %>%
+  group_by(performer, song) %>%
+  summarize(count = n()) %>%
+  arrange(desc(count)) %>%
+  top_n(10)
+top10_songs
+```
+
+### Description:
+This table shows the top 10 most popular songs on the Billboard Top 100 chart since 1958. The table has 3 columns (performer, song title, and the count,representing the total weeks the song appeared) and 10 rows. Entries are sorted in descending order. The song and artist with the highest count is "Radioactive" by Imagine Dragons with a count of 87. The song and artist from the top 10 most popular songs with the lowest count is "Before He Cheats" by Carrie Underwood with a count of 64.
+
+## Part B: A Line Graph that Displays the Musical Diversity of Unique Songs over the Years
+```{r echo=FALSE, message=FALSE}
+unique_billboard <- billboard %>% 
+  filter(year != 1958 & year != 2021) %>%
+  group_by(year) %>%
+  summarize(unique_songs = length(unique(song_id)))
+unique_ggplot = ggplot(unique_billboard)
+unique_ggplot + geom_line(aes(x=year, y=unique_songs), col = 'lightpink2') + labs(title='Musical Diversity of Top 100 Songs in the Billboard Over the Years', x= 'Year', y= 'Number of Unique Songs') + theme_minimal()
+desc_unique <- unique_billboard %>%
+  summarize(
+    Mean = mean(unique_songs),
+    Min = min(unique_songs),
+    Max = max(unique_songs)
+  )
+desc_unique
+```
+
+### Description: 
+This line graph exhibits the musical diversity of songs throughout the Billboard Top 100 chart each year, excluding the incomplete data years 1958 and 2021. The years is the x axis, while the y-axis is the number of unique songs appearing at the chart in any given week.The mean of the graph is about 565.7742 unique songs, a minimum of about 387 unique songs, and a maximum of about 832 unique sounds. The trends of the graph show that the number of unique songs reached its peaks between the years of 1960-1970 and the year 2020. There is a drastic decrease of the amount of unique songs after mid 1960s, but the number goes back up after the year 2000. A hypothesized reason for the 1960s and 1970s to have high amount of unique songs maybe because that period was going through  cultural and social changes, including the rise of the counterculture movement,impact of the British Invasion in the music scene, and the introduction genres such as rock, folk, and psychedelic music. As for the 2000s, that period was going through an era of technological improvement. Therefore, the rise of the internet, streaming platforms, and digital downloads gave  artists new ways to release their music independently, contributing to a more diverse musical landscape.
+
+## Part C: A Bar Plot for These 19 Artists, Showing How Many Ten-Week Hits Each One Had in Their Musical Career
+```{r echo=FALSE, message=FALSE}
+ten_week_billboard <- billboard %>%
+  group_by(performer, song) %>%
+  summarize(songs_10 = sum(weeks_on_chart >= 10)) %>%
+  filter(songs_10 >= 1) 
+
+artist_billboard <- ten_week_billboard %>%
+  group_by(performer) %>%
+  summarize(ten_week = length(songs_10)) %>%
+  filter(ten_week >= 30)
+
+top19_ggplot = ggplot(artist_billboard)
+top19_ggplot + geom_bar(aes(x = performer, y = ten_week), fill = 'mediumpurple4', stat = 'identity') +
+  labs(title = 'Number of Ten-Week Hits for Top Artists',
+       x = 'Artist',
+       y = 'Number of Ten-Week Hits') +
+  theme_minimal() + coord_flip()
+ten_week_stats <- summary(artist_billboard$ten_week)
+ten_week_stats
+min_index <- which.min(artist_billboard$ten_week)
+min_artist <- artist_billboard[min_index, ]
+min_artist
+```
+
+### Description: 
+This bar plot represents the number of ten-week hits for the top 19 artists in U.S. musical history since 1958 who have had at least 30 songs that were
+“ten-week hits.”  from the Billboard top 100. The x axis of the graph is the number of 10-week hits and the y axis is the top 19 artists.The artist Elton John has the highest amount of 10-week hits with a value of about 52 and Brad Paisley has the lowest amount of 10-week hits with a value of about 30. The mean of the number of 10-week hits from the 19 artists is about 34.68. From this analysis, it can be assumed that Elton John is the most popular with his songs trending the most and Brad Paisley is the least popular out of the 19 artists.
